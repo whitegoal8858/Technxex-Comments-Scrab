@@ -24,7 +24,7 @@ This project is a web-based sentiment analysis tool that allows users to analyze
    ```
 2. Navigate to the project directory:
    ```sh
-   cd index
+   cd main
    ```
 3. Install required Python dependencies:
    ```sh
