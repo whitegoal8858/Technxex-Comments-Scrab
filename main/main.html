@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Video Analyzer</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e0e5ec;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #e0e5ec;
+            border-radius: 20px;
+            box-shadow: 10px 10px 20px #bebebe, -10px -10px 20px #ffffff;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header img {
+            width: 180px;
+            height: 60px;
+            margin-right: 250px;
+            text-shadow: #bebebe;
+        }
+        .row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .box {
+            flex: 1;
+            padding: 20px;
+            background: #e0e5ec;
+            border-radius: 15px;
+            box-shadow: 8px 8px 16px #bebebe, -8px -8px 16px #ffffff;
+            text-align: center;
+        }
+        input{
+            width: 90%;
+            padding: 1vh;
+            margin-top: 10px;
+            border: none;
+            border-radius: 10px;
+            box-shadow: inset 4px 4px 8px #bebebe, inset -4px -4px 8px #ffffff;
+
+        }
+        button{
+            width: 19vh;
+            padding: 1vh;
+            margin-top: 10px;
+            border: none;
+            border-radius: 10px;
+            box-shadow: inset 4px 4px 8px #bebebe, inset -4px -4px 8px #ffffff;
+        }
+        button {
+            background-color: #d25a4f;
+            color: #fff;
+            cursor: pointer;
+        }
+        .graph-section {
+            display: none;
+            text-align: center;
+            margin-top: 0px;
+        }
+        /* 🔹 Loader Styling */
+        .loading-section {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #007bff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: auto;
+        }
+        .box h2 {
+            display: flex;
+            justify-content: space-between; /* Yeh line text ko ek line me dikhayegi */
+            align-items: center;
+            margin-bottom: 5px; /* Neeche ke gap ko kam kar diya */
+        }
+        .row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap; /* Yeh line automatically 2 tiles ke baad next row me transfer kar degi */
+            justify-content: center; /* Center me laane ke liye */
+        }
+        
+        .box {
+            width: 45%; /* Yeh line max 2 tiles ek row me dikhayegi */
+            padding: 20px;
+            background: #e0e5ec;
+            border-radius: 15px;
+            box-shadow: 8px 8px 16px #bebebe, -8px -8px 16px #ffffff;
+            text-align: center;
+            margin-bottom: 20px; /* Rows ke beech ka gap */
+        }
+        
+        @media (max-width: 768px) {
+            .box {
+                width: 100%; /* Mobile screen par ek hi box ek row me dikhega */
+            }
+        }
+        
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/YouTube_Logo_2017.svg/1280px-YouTube_Logo_2017.svg.png" alt="YouTube Logo">
+            <h1>YouTube Video Analyzer</h1>
+        </div>
+        <div class="row">
+            <div class="box">
+                <h2>Enter YouTube URL</h2>
+                <input type="text" id="youtube-url" placeholder="Paste YouTube URL here">
+                <button id="search-btn">Search</button>
+            </div>
+            <div class="box">
+                <h2>Total Views <span id="views-count">0</span></h2>
+                <h2>Total Likes <span id="likes-count">0</span></h2>
+                <h2>Total Comments <span id="comments-count">0</span></h2>
+            </div>
+            
+            
+        
+        <!-- 🔹 Loader Section -->
+        <div class="loading-section" id="loading-section">
+            <div class="loader"></div>
+            <p>Fetching data... Please wait</p>
+        </div>
+
+        <div class="row" id="result-section" style="display: none; display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+            <div class="box" style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px; border-radius: 10px; box-shadow: 4px 4px 6px #bebebe, -4px -4px 6px #ffffff; background: #e0e0e0;">
+                <div style="display: flex; justify-content: space-between; gap: 10px; width: 100%;">
+                    <h2>Video Title:</h2>
+                    <p id="video-title">No title available</p>
+                </div>
+                <div style="display: flex; justify-content: space-between; gap: 10px; width: 100%;">
+                    <h2>YouTube ID:</h2>
+                    <p id="youtube-id">No ID available</p>
+                </div>
+                <button id="graph-btn" style="margin-top: 10px;">Show Graph</button>
+            </div>
+        
+            <div class="box" style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px; border-radius: 10px; box-shadow: 4px 4px 6px #bebebe, -4px -4px 6px #ffffff; background: #e0e0e0;">
+                <h2>Sentimental Breakdown</h2>
+                <div style="display: flex; justify-content: space-between; gap: 20px; width: 100%;">
+                    <div>
+                        <p>Positive:</p>
+                        <span id="positive-count">0%</span>
+                    </div>
+                    <div>
+                        <p>Negative:</p>
+                        <span id="negative-count">0%</span>
+                    </div>
+                    <div>
+                        <p>Neutral:</p>
+                        <span id="neutral-count">0%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        
+            <!-- Thumbnail Tile -->
+            <div class="row" id="video-details-section" style="display: none; gap: 20px; justify-content: center; flex-wrap: wrap;">
+    <!-- Thumbnail Tile -->
+    <div class="box" style="max-width: 48%; display: flex; flex-direction: column; align-items: center;">
+        <h2>Video Thumbnail</h2>
+        <img id="thumbnail" src="" alt="Thumbnail" style="width: 100%; border-radius: 10px; box-shadow: 4px 4px 10px #bebebe, -4px -4px 10px #ffffff;">
+    </div>
+
+    <!-- Summary Tile -->
+    <div class="box" style="max-width: 48%; display: flex; flex-direction: column; text-align: left; padding: 20px;">
+        <h2>Video Summary</h2>
+        <p id="video-summary" style="font-size: 16px; text-align: justify;">No summary available</p>
+    </div>
+</div>
+
+        
+
+        <div class="graph-section">
+            <h2>Sentiment Breakdown Graph</h2>
+            <canvas id="sentimentBarChart"></canvas>
+            <canvas id="sentimentLineChart"></canvas>
+        </div>
+    </div>
+    
+        <script>
+            async function analyzeVideo() {
+                const url = document.getElementById("video_url").value;
+                const response = await fetch("/analyze", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({video_url: url}),
+                });
+        
+                const data = await response.json();
+                document.getElementById("suggestions").innerHTML = data.suggestions.map(s => <p>${s}</p>).join("");
+            }
+        
+    </script>
+    <script src="../script/script.js"></script>
+
+<script>
+document.getElementById('search-btn').addEventListener('click', async function () {
+    const url = document.getElementById('youtube-url').value;
+    const videoId = getYouTubeVideoID(url);
+    const API_KEY = "AIzaSyCO9VG4-8i5TGZr6VuROa4pRbFgeHX1BNI";
+
+    if (!videoId) {
+        alert("❌ Invalid YouTube URL!");
+        return;
+    }
+
+    // Show Loader
+    document.getElementById("loading-section").style.display = "block";
+    document.getElementById("result-section").style.display = "none";
+    document.getElementById("video-details-section").style.display = "none";
+
+    try {
+        const response = await fetch(https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet&id=${videoId}&key=${API_KEY});
+
+        if (!response.ok) {
+            throw new Error('Error fetching video details');
+        }
+
+        const data = await response.json();
+
+        if (!data.items || data.items.length === 0) {
+            alert("❌ Video Not Found!");
+            document.getElementById("loading-section").style.display = "none";
+            return;
+        }
+
+        const video = data.items[0];
+
+        // Fill Video Details
+        document.getElementById('views-count').textContent = video.statistics.viewCount;
+        document.getElementById('likes-count').textContent = video.statistics.likeCount;
+        document.getElementById('comments-count').textContent = video.statistics.commentCount;
+        document.getElementById('video-title').textContent = video.snippet.title;
+        document.getElementById('thumbnail').src = video.snippet.thumbnails.high.url;
+        document.getElementById('video-summary').textContent = video.snippet.description;
+
+        // Update Sentiment Breakdown
+        updateSentimentBreakdown({ positive: 60, negative: 25, neutral: 15 });
+
+        // Show Result Section
+        document.getElementById("loading-section").style.display = "none";
+        document.getElementById("result-section").style.display = "flex";
+        document.getElementById("video-details-section").style.display = "flex";
+
+    } catch (error) {
+        alert("❌ Error Fetching Data!");
+        console.error(error);
+        document.getElementById("loading-section").style.display = "none";
+    }
+});
+
+// Function to Extract Video ID from URL
+function getYouTubeVideoID(url) {
+    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:.*v=|embed\/|v\/|shorts\/))([^?&]+)/);
+    return match ? match[1] : null;
+}
+
+// Function to Update Sentiment Breakdown
+function updateSentimentBreakdown(sentiments) {
+    document.getElementById("positive-count").textContent = sentiments.positive + "%";
+    document.getElementById("negative-count").textContent = sentiments.negative + "%";
+    document.getElementById("neutral-count").textContent = sentiments.neutral + "%";
+}
+
+// Show Graph Function
+document.getElementById("graph-btn").addEventListener("click", function () {
+    document.querySelector(".graph-section").style.display = "block";
+    const ctx = document.getElementById("sentimentBarChart").getContext("2d");
+
+    new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: ["Positive", "Negative", "Neutral"],
+            datasets: [{
+                label: "Sentiment Analysis",
+                data: [60, 25, 15],
+                backgroundColor: ["#4CAF50", "#F44336", "#FFC107"]
+            }]
+        }
+    });
+});
+
+</script>
+</body>
+</html>
